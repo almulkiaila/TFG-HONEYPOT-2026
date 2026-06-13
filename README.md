@@ -5,28 +5,12 @@ portal, deterministic behavioral scoring, a persistent trust-score model, and
 LLM-based session analysis to detect and respond to **insider threats** —
 actors who already hold legitimate access but misuse it.
 
-Developed as part of a Bachelor's Thesis (TFG) in Computer Engineering:
+Developed as part of a Bachelor's Thesis (TFG) in Computer Sciene & Engineering by Aila Almulki:
 *"Sistema de recomendación para honeypots con soporte en LLM"
 (Recommendation system for honeypots with LLM support)*.
 
 ---
 
-## ⚠️ Disclaimer
-
-This is a **research/educational honeypot**. It must be deployed in an
-**isolated, controlled environment** (e.g. an isolated LAN/VLAN). Do **not**
-expose it to the public internet. By design:
-
-- The SSH service accepts a fixed set of weak credentials and grants access to
-  an emulated shell.
-- The web portal accepts **any** submitted credentials.
-- A hidden admin panel and web terminal are intentionally reachable but
-  unlinked.
-
-All of this is intentional deception — never run it outside an isolated test
-network.
-
----
 
 ## Architecture Overview
 
@@ -104,7 +88,7 @@ that analysis never blocks the interactive shell:
 - An OpenAI-compatible LLM endpoint (e.g. Ollama served through LiteLLM,
   local or remote). The system was evaluated against an open-weight ~20B
   parameter model (`gpt-oss:20b`).
-- (Optional) Wazuh single-node installation for SIEM integration and the
+- Wazuh single-node installation for SIEM integration and the
   real-time dashboard.
 
 ---
@@ -330,14 +314,7 @@ python evaluate.py
 Uses an isolated database (`honeypot_eval.db`), wiped and reinitialised at the
 start of each run.
 
-Optional flags:
 
-```bash
-python evaluate.py --runs 3        # repeat each session 3x (consistency analysis)
-python evaluate.py --sessions 5    # quick test on the first 5 sessions
-python evaluate.py --skip-stages   # skip incremental attack-stage classification (faster)
-python evaluate.py --keep-db       # don't wipe the eval DB between runs
-```
 
 Outputs:
 
@@ -468,22 +445,5 @@ Access the Wazuh dashboard at `https://localhost`. A custom dashboard
   surfaced through the SIEM/database, never enforced automatically — there is
   no real resource to revoke in a honeypot.
 
----
 
-## Known Limitations
 
-- **LLM non-determinism**: even at temperature 0.1, classifications are not
-  guaranteed to be fully reproducible across runs.
-- **Hallucination risk**: free-text fields (detection rule, deception
-  recommendation, reasoning) may reference details not strictly present in the
-  session — the structured behavioral scores serve as a cross-check.
-- **Prompt injection surface**: attacker-typed commands are embedded directly
-  into LLM prompts; the low temperature and structured output format mitigate
-  but do not eliminate this risk.
-
----
-
-## License
-
-Developed for academic purposes as part of a Bachelor's Thesis (TFG),
-Universidad de Málaga, 2026.
