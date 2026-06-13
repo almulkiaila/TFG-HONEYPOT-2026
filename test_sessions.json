@@ -1,0 +1,920 @@
+[
+  {
+    "id": "MAL_001",
+    "category": "malicious_clear",
+    "description": "Skilled attacker goes straight for credentials, minimal recon",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.0.101",
+    "commands": [
+      "whoami",
+      "sudo -l",
+      "sudo cat /etc/shadow",
+      "cat /home/devops-admin/config.env",
+      "cat /home/devops-admin/aws_credentials.txt",
+      "cat /home/devops-admin/passwords.txt"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": "whoami, sudo -l, sudo cat /etc/shadow"
+      },
+      {
+        "file": "aws_credentials.txt",
+        "access_count": 1,
+        "commands_before": "sudo -l, sudo cat /etc/shadow, cat /home/devops-admin/config.env"
+      },
+      {
+        "file": "passwords.txt",
+        "access_count": 1,
+        "commands_before": "sudo cat /etc/shadow, cat /home/devops-admin/config.env, cat /home/devops-admin/aws_credentials.txt"
+      }
+    ],
+    "duration_seconds": 38,
+    "previous_sessions": 0
+  },
+  {
+    "id": "MAL_002",
+    "category": "malicious_clear",
+    "description": "Privilege escalation focused attack",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "privilege_escalation",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.0.102",
+    "commands": [
+      "id",
+      "sudo -l",
+      "sudo su",
+      "sudo bash",
+      "sudo cat /etc/shadow",
+      "cat /etc/passwd"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 25,
+    "previous_sessions": 0
+  },
+  {
+    "id": "MAL_003",
+    "category": "malicious_clear",
+    "description": "Database exfiltration attempt",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.0.103",
+    "commands": [
+      "ls /home/devops-admin",
+      "cat /home/devops-admin/db_backup_2025.sql",
+      "cat /home/devops-admin/users_dump.sql",
+      "cat /home/devops-admin/salaries_2025.csv",
+      "mysqldump --all-databases"
+    ],
+    "canaries_touched": [
+      {
+        "file": "db_backup_2025.sql",
+        "access_count": 1,
+        "commands_before": "ls /home/devops-admin"
+      },
+      {
+        "file": "users_dump.sql",
+        "access_count": 1,
+        "commands_before": "ls /home/devops-admin, cat /home/devops-admin/db_backup_2025.sql"
+      },
+      {
+        "file": "salaries_2025.csv",
+        "access_count": 1,
+        "commands_before": "cat /home/devops-admin/db_backup_2025.sql, cat /home/devops-admin/users_dump.sql"
+      }
+    ],
+    "duration_seconds": 42,
+    "previous_sessions": 0
+  },
+  {
+    "id": "MAL_004",
+    "category": "malicious_clear",
+    "description": "Automated tool: very fast, many commands per minute",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.0.104",
+    "commands": [
+      "whoami",
+      "id",
+      "uname -a",
+      "sudo -l",
+      "cat /etc/passwd",
+      "sudo cat /etc/shadow",
+      "ls /home/devops-admin",
+      "cat /home/devops-admin/config.env",
+      "cat /home/devops-admin/aws_credentials.txt",
+      "cat /home/devops-admin/vpn_config.ovpn",
+      "env",
+      "netstat -tlnp"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": "ls /home/devops-admin, sudo cat /etc/shadow, cat /etc/passwd"
+      },
+      {
+        "file": "aws_credentials.txt",
+        "access_count": 1,
+        "commands_before": "sudo cat /etc/shadow, cat /etc/passwd, ls /home/devops-admin"
+      },
+      {
+        "file": "vpn_config.ovpn",
+        "access_count": 1,
+        "commands_before": "cat /home/devops-admin/config.env, cat /home/devops-admin/aws_credentials.txt"
+      }
+    ],
+    "duration_seconds": 18,
+    "previous_sessions": 0
+  },
+  {
+    "id": "MAL_005",
+    "category": "malicious_clear",
+    "description": "VPN config exfiltration for persistent access",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.0.105",
+    "commands": [
+      "ifconfig",
+      "ip a",
+      "cat /home/devops-admin/vpn_config.ovpn",
+      "cat /home/devops-admin/config.env",
+      "netstat -tlnp"
+    ],
+    "canaries_touched": [
+      {
+        "file": "vpn_config.ovpn",
+        "access_count": 1,
+        "commands_before": "ifconfig, ip a"
+      },
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": "ip a, cat /home/devops-admin/vpn_config.ovpn"
+      }
+    ],
+    "duration_seconds": 32,
+    "previous_sessions": 0
+  },
+  {
+    "id": "MAL_006",
+    "category": "malicious_clear",
+    "description": "Reconnaissance with intent: nmap, ps aux, netstat",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "reconnaissance",
+      "risk_level": "medium",
+      "training_level": 3
+    },
+    "ip": "10.0.0.106",
+    "commands": [
+      "uname -a",
+      "ps aux",
+      "netstat -tlnp",
+      "nmap localhost",
+      "env",
+      "id",
+      "sudo -l"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 22,
+    "previous_sessions": 0
+  },
+  {
+    "id": "MAL_007",
+    "category": "malicious_clear",
+    "description": "Repeat malicious offender, prior sessions exist",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.0.107",
+    "commands": [
+      "cat /home/devops-admin/config.env",
+      "cat /home/devops-admin/passwords.txt",
+      "sudo cat /etc/shadow"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": ""
+      },
+      {
+        "file": "passwords.txt",
+        "access_count": 1,
+        "commands_before": "cat /home/devops-admin/config.env"
+      }
+    ],
+    "duration_seconds": 12,
+    "previous_sessions": 3
+  },
+  {
+    "id": "MAL_008",
+    "category": "malicious_clear",
+    "description": "Mixed credential harvesting + privilege escalation",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "privilege_escalation",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.0.108",
+    "commands": [
+      "whoami",
+      "id",
+      "sudo -l",
+      "sudo bash",
+      "cat /etc/passwd",
+      "sudo cat /etc/shadow",
+      "cat /home/devops-admin/passwords.txt",
+      "env"
+    ],
+    "canaries_touched": [
+      {
+        "file": "passwords.txt",
+        "access_count": 1,
+        "commands_before": "sudo bash, cat /etc/passwd, sudo cat /etc/shadow"
+      }
+    ],
+    "duration_seconds": 28,
+    "previous_sessions": 0
+  },
+  {
+    "id": "MAL_009",
+    "category": "malicious_clear",
+    "description": "Salaries exfiltration (HR insider attack)",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "high",
+      "training_level": 3
+    },
+    "ip": "10.0.0.109",
+    "commands": [
+      "ls /home/devops-admin",
+      "cat /home/devops-admin/salaries_2025.csv",
+      "cat /home/devops-admin/users_dump.sql"
+    ],
+    "canaries_touched": [
+      {
+        "file": "salaries_2025.csv",
+        "access_count": 2,
+        "commands_before": "ls /home/devops-admin"
+      },
+      {
+        "file": "users_dump.sql",
+        "access_count": 1,
+        "commands_before": "cat /home/devops-admin/salaries_2025.csv"
+      }
+    ],
+    "duration_seconds": 35,
+    "previous_sessions": 0
+  },
+  {
+    "id": "MAL_010",
+    "category": "malicious_clear",
+    "description": "Methodical attacker: recon then targeted credential dump",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.0.110",
+    "commands": [
+      "uname -a",
+      "hostname",
+      "id",
+      "ls /home/devops-admin",
+      "ls -la /home/devops-admin",
+      "cat /home/devops-admin/config.env",
+      "cat /home/devops-admin/aws_credentials.txt"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": "ls /home/devops-admin, ls -la /home/devops-admin"
+      },
+      {
+        "file": "aws_credentials.txt",
+        "access_count": 1,
+        "commands_before": "ls -la /home/devops-admin, cat /home/devops-admin/config.env"
+      }
+    ],
+    "duration_seconds": 40,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_001",
+    "category": "negligent_clear",
+    "description": "Confused user wandering with basic commands",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "low",
+      "training_level": 0
+    },
+    "ip": "10.0.1.101",
+    "commands": [
+      "ls",
+      "pwd",
+      "cd /home",
+      "ls",
+      "cd ..",
+      "pwd",
+      "ls /tmp",
+      "whoami",
+      "help",
+      "exit"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 180,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_002",
+    "category": "negligent_clear",
+    "description": "Curious employee opens one canary by accident",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "medium",
+      "training_level": 0
+    },
+    "ip": "10.0.1.102",
+    "commands": [
+      "ls",
+      "cd /home/devops-admin",
+      "ls",
+      "ls -la",
+      "cat /home/devops-admin/config.env",
+      "pwd",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": "cd /home/devops-admin, ls, ls -la"
+      }
+    ],
+    "duration_seconds": 150,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_003",
+    "category": "negligent_clear",
+    "description": "User just exploring, no sensitive files accessed",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "low",
+      "training_level": 0
+    },
+    "ip": "10.0.1.103",
+    "commands": [
+      "whoami",
+      "pwd",
+      "ls",
+      "date",
+      "uptime",
+      "uname",
+      "hostname",
+      "clear",
+      "ls",
+      "exit"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 95,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_004",
+    "category": "negligent_clear",
+    "description": "User wandering for long time, then accidental canary",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "medium",
+      "training_level": 0
+    },
+    "ip": "10.0.1.104",
+    "commands": [
+      "ls",
+      "cd /etc",
+      "ls",
+      "cd ..",
+      "ls",
+      "cd /var",
+      "ls",
+      "cd /home",
+      "ls",
+      "cd devops-admin",
+      "ls",
+      "ls -la",
+      "cat /home/devops-admin/salaries_2025.csv",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "salaries_2025.csv",
+        "access_count": 1,
+        "commands_before": "cd devops-admin, ls, ls -la"
+      }
+    ],
+    "duration_seconds": 240,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_005",
+    "category": "negligent_clear",
+    "description": "Very slow user, basic commands only",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "low",
+      "training_level": 0
+    },
+    "ip": "10.0.1.105",
+    "commands": [
+      "help",
+      "?",
+      "ls",
+      "pwd",
+      "whoami",
+      "exit"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 220,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_006",
+    "category": "negligent_clear",
+    "description": "User checks one HR file out of curiosity then leaves",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "medium",
+      "training_level": 0
+    },
+    "ip": "10.0.1.106",
+    "commands": [
+      "ls",
+      "cd /home/devops-admin",
+      "ls",
+      "cat /home/devops-admin/salaries_2025.csv",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "salaries_2025.csv",
+        "access_count": 1,
+        "commands_before": "cd /home/devops-admin, ls"
+      }
+    ],
+    "duration_seconds": 95,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_007",
+    "category": "negligent_clear",
+    "description": "User tries commands that don't work, gives up",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "low",
+      "training_level": 0
+    },
+    "ip": "10.0.1.107",
+    "commands": [
+      "dir",
+      "list",
+      "ls",
+      "show",
+      "help",
+      "ls /",
+      "cd home",
+      "ls",
+      "exit"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 130,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_008",
+    "category": "negligent_clear",
+    "description": "Basic user got lost in filesystem",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "low",
+      "training_level": 0
+    },
+    "ip": "10.0.1.108",
+    "commands": [
+      "ls",
+      "cd /",
+      "ls",
+      "cd etc",
+      "ls",
+      "cd ..",
+      "cd home",
+      "ls",
+      "pwd",
+      "exit"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 165,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_009",
+    "category": "negligent_clear",
+    "description": "User accidentally cats /etc/passwd then stops",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "low",
+      "training_level": 0
+    },
+    "ip": "10.0.1.109",
+    "commands": [
+      "ls",
+      "cd /etc",
+      "ls",
+      "cat /etc/passwd",
+      "cd ..",
+      "pwd",
+      "exit"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 110,
+    "previous_sessions": 0
+  },
+  {
+    "id": "NEG_010",
+    "category": "negligent_clear",
+    "description": "Repeat negligent user, second incident, no escalation",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "medium",
+      "training_level": 2
+    },
+    "ip": "10.0.1.110",
+    "commands": [
+      "ls",
+      "cd /home/devops-admin",
+      "ls",
+      "cat /home/devops-admin/config.env",
+      "ls /tmp",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": "cd /home/devops-admin, ls"
+      }
+    ],
+    "duration_seconds": 140,
+    "previous_sessions": 1
+  },
+  {
+    "id": "AMB_001",
+    "category": "ambiguous",
+    "description": "Curious escalation: starts wandering then opens multiple canaries",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.2.101",
+    "commands": [
+      "ls",
+      "pwd",
+      "cd /home/devops-admin",
+      "ls",
+      "ls -la",
+      "cat /home/devops-admin/config.env",
+      "cat /home/devops-admin/salaries_2025.csv",
+      "cat /home/devops-admin/passwords.txt",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": "ls, cd /home/devops-admin, ls"
+      },
+      {
+        "file": "salaries_2025.csv",
+        "access_count": 1,
+        "commands_before": "cd /home/devops-admin, ls, cat config.env"
+      },
+      {
+        "file": "passwords.txt",
+        "access_count": 1,
+        "commands_before": "ls, cat config.env, cat salaries"
+      }
+    ],
+    "duration_seconds": 120,
+    "previous_sessions": 0
+  },
+  {
+    "id": "AMB_002",
+    "category": "ambiguous",
+    "description": "Malicious actor faking incompetence, slow but targeted",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "high",
+      "training_level": 3
+    },
+    "ip": "10.0.2.102",
+    "commands": [
+      "help",
+      "ls",
+      "pwd",
+      "ls",
+      "cd /home/devops-admin",
+      "ls",
+      "cat /home/devops-admin/aws_credentials.txt",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "aws_credentials.txt",
+        "access_count": 1,
+        "commands_before": "cd /home/devops-admin, ls"
+      }
+    ],
+    "duration_seconds": 200,
+    "previous_sessions": 0
+  },
+  {
+    "id": "AMB_003",
+    "category": "ambiguous",
+    "description": "Reconnaissance only but with advanced commands",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "low",
+      "training_level": 0
+    },
+    "ip": "10.0.2.103",
+    "commands": [
+      "uname -a",
+      "ps aux",
+      "netstat -tlnp",
+      "env",
+      "ifconfig",
+      "id",
+      "sudo -l",
+      "exit"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 35,
+    "previous_sessions": 0
+  },
+  {
+    "id": "AMB_004",
+    "category": "ambiguous",
+    "description": "Negligent repeat offender, escalating curiosity",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "high",
+      "training_level": 2
+    },
+    "ip": "10.0.2.104",
+    "commands": [
+      "ls",
+      "cd /home/devops-admin",
+      "ls",
+      "cat /home/devops-admin/config.env",
+      "cat /home/devops-admin/salaries_2025.csv",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": "cd /home/devops-admin, ls"
+      },
+      {
+        "file": "salaries_2025.csv",
+        "access_count": 1,
+        "commands_before": "cd /home/devops-admin, ls, cat config.env"
+      }
+    ],
+    "duration_seconds": 110,
+    "previous_sessions": 2
+  },
+  {
+    "id": "AMB_005",
+    "category": "ambiguous",
+    "description": "User opens canary 3 times (deliberate but slow)",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.2.105",
+    "commands": [
+      "ls",
+      "cd /home/devops-admin",
+      "ls",
+      "cat /home/devops-admin/passwords.txt",
+      "less /home/devops-admin/passwords.txt",
+      "head /home/devops-admin/passwords.txt",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "passwords.txt",
+        "access_count": 3,
+        "commands_before": "cd /home/devops-admin, ls"
+      }
+    ],
+    "duration_seconds": 165,
+    "previous_sessions": 0
+  },
+  {
+    "id": "AMB_006",
+    "category": "ambiguous",
+    "description": "Skilled user but does no harm (devops doing legit work?)",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "reconnaissance",
+      "risk_level": "low",
+      "training_level": 0
+    },
+    "ip": "10.0.2.106",
+    "commands": [
+      "id",
+      "uname -a",
+      "ps aux",
+      "netstat -tlnp",
+      "ls /var/log",
+      "cat /etc/passwd",
+      "exit"
+    ],
+    "canaries_touched": [],
+    "duration_seconds": 75,
+    "previous_sessions": 0
+  },
+  {
+    "id": "AMB_007",
+    "category": "ambiguous",
+    "description": "Many sessions, escalating each time (recurring offender)",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.2.107",
+    "commands": [
+      "cat /home/devops-admin/config.env",
+      "cat /home/devops-admin/aws_credentials.txt",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": ""
+      },
+      {
+        "file": "aws_credentials.txt",
+        "access_count": 1,
+        "commands_before": "cat config.env"
+      }
+    ],
+    "duration_seconds": 18,
+    "previous_sessions": 5
+  },
+  {
+    "id": "AMB_008",
+    "category": "ambiguous",
+    "description": "Single canary access but with privilege escalation attempt",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "privilege_escalation",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.2.108",
+    "commands": [
+      "whoami",
+      "sudo -l",
+      "sudo cat /etc/shadow",
+      "cat /home/devops-admin/config.env",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": "sudo -l, sudo cat /etc/shadow"
+      }
+    ],
+    "duration_seconds": 30,
+    "previous_sessions": 0
+  },
+  {
+    "id": "AMB_009",
+    "category": "ambiguous",
+    "description": "Wandering then realizes there are sensitive files, takes few",
+    "ground_truth": {
+      "insider_type": "negligent",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "medium",
+      "training_level": 1
+    },
+    "ip": "10.0.2.109",
+    "commands": [
+      "ls",
+      "pwd",
+      "cd /",
+      "ls",
+      "cd /home",
+      "ls",
+      "cd devops-admin",
+      "ls",
+      "ls -la",
+      "cat /home/devops-admin/vpn_config.ovpn",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "vpn_config.ovpn",
+        "access_count": 1,
+        "commands_before": "cd devops-admin, ls, ls -la"
+      }
+    ],
+    "duration_seconds": 170,
+    "previous_sessions": 0
+  },
+  {
+    "id": "AMB_010",
+    "category": "ambiguous",
+    "description": "Repeat offender returning after training (should escalate decision)",
+    "ground_truth": {
+      "insider_type": "malicious",
+      "attack_stage": "data_exfiltration",
+      "risk_level": "critical",
+      "training_level": 3
+    },
+    "ip": "10.0.2.110",
+    "commands": [
+      "cat /home/devops-admin/config.env",
+      "cat /home/devops-admin/passwords.txt",
+      "exit"
+    ],
+    "canaries_touched": [
+      {
+        "file": "config.env",
+        "access_count": 1,
+        "commands_before": ""
+      },
+      {
+        "file": "passwords.txt",
+        "access_count": 1,
+        "commands_before": "cat config.env"
+      }
+    ],
+    "duration_seconds": 15,
+    "previous_sessions": 4
+  }
+]

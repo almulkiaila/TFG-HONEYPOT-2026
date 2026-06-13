@@ -1,0 +1,35 @@
+{
+  "user": "devops-admin",
+  "filesystem": {
+    "/": ["etc", "home", "var", "tmp", "opt"],
+    "/home": ["devops-admin"],
+    "/home/devops-admin": [".bash_history", ".ssh", "config.env", "notes.txt"],
+    "/var": ["www", "log", "backups"],
+    "/var/backups": ["db_backup_2025.sql", "users_dump.sql"],
+    "/var/www": ["html"],
+    "/var/www/html": ["index.html", "config.env"],
+    "/etc": ["passwd", "shadow", "hosts", "nginx"],
+    "/opt": ["app"],
+    "/opt/app": ["config.env", "passwords.txt", "aws_credentials.txt", "salaries_2025.csv", "vpn_config.ovpn"],
+    "/tmp": ["session_cache.tmp"]
+  },
+  "files": {
+    "/home/devops-admin/config.env": "DB_HOST=10.0.2.50\nDB_USER=app_admin\nDB_PASS=Pr0d_s3cure!2025\nAWS_ACCESS_KEY=AKIAIOSFODNN7EXAMPLE\nAWS_SECRET_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nAPI_ENDPOINT={{BEACON_URL}}/api/v1/health",
+    "/opt/app/config.env": "DB_HOST=10.0.2.50\nDB_USER=app_admin\nDB_PASS=Pr0d_s3cure!2025\nSECRET_KEY=nexuscorp-internal-2025\nINTERNAL_PORTAL={{BEACON_URL}}",
+    "/opt/app/passwords.txt": "# Service Accounts - DO NOT SHARE\nadmin:admin123\nbackup:Bkup2025!\nmonitoring:M0n1t0r_2025\njenkins:J3nk1ns!CI\nroot_db:RootDB#Secure",
+    "/opt/app/aws_credentials.txt": "[default]\naws_access_key_id = AKIAIOSFODNN7EXAMPLE\naws_secret_access_key = wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY\nregion = eu-west-1",
+    "/var/backups/db_backup_2025.sql": "-- MySQL dump 10.13\n-- Server version 8.0.35\nCREATE DATABASE IF NOT EXISTS nexuscorp_prod;\nUSE nexuscorp_prod;\nCREATE TABLE employees (id INT, name VARCHAR(100), email VARCHAR(100), salary DECIMAL(10,2));\nINSERT INTO employees VALUES (1,'Carlos Mendoza','c.mendoza@corp-internal.net',72000.00);\nINSERT INTO employees VALUES (2,'Laura Fernandez','l.fernandez@corp-internal.net',78000.00);",
+    "/var/backups/users_dump.sql": "-- User export 2025-04-01\nINSERT INTO users (username, password_hash, role) VALUES\n('admin', '$2b$12$fakehashhere...', 'superadmin'),\n('devops', '$2b$12$anotherfake...', 'admin'),\n('backup', '$2b$12$yetanother...', 'service');",
+    "/opt/app/salaries_2025.csv": "employee_id,name,department,annual_salary,bonus\n1,Carlos Mendoza,Engineering,72000,5400\n2,Laura Fernandez,Engineering,78000,6200\n3,Miguel A. Torres,IT Security,68000,5100\n4,Ana Belen Ruiz,HR,62000,4600\n5,David Garcia,Finance,75000,5800",
+    "/opt/app/vpn_config.ovpn": "client\ndev tun\nproto udp\nremote vpn.nexuscorp.internal 1194\nresolv-retry infinite\ncipher AES-256-GCM\nauth SHA256\nca ca.crt\ncert client.crt\nkey client.key",
+    "/home/devops-admin/notes.txt": "TODO:\n- Rotate DB credentials (overdue!)\n- Check backup script on prod-db-02\n- Review access logs for /opt/app\n- Internal portal: {{BEACON_URL}}",
+    "/var/www/html/index.html": "<html><body><h1>NEXUScorp Internal</h1><p>Portal: <a href='{{BEACON_URL}}'>{{BEACON_URL}}</a></p></body></html>",
+    "/var/www/html/config.env": "PORTAL_URL={{BEACON_URL}}\nDB_BACKUP_API={{BEACON_URL}}/metrics/db\nADMIN_PANEL={{BEACON_URL}}/admin"
+  },
+  "services": {
+    "22": "ssh",
+    "80": "http",
+    "3306": "mysql",
+    "8888": "http-alt"
+  }
+}

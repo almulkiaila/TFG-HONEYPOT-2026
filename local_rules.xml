@@ -1,0 +1,239 @@
+<!-- Local rules -->
+<group name="local,syslog,sshd,">
+  <rule id="100001" level="5">
+    <if_sid>5716</if_sid>
+    <srcip>1.1.1.1</srcip>
+    <description>sshd: authentication failed from IP 1.1.1.1.</description>
+    <group>authentication_failed,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+</group>
+
+<group name="llm,honeypot">
+
+<rule id="100050" level="0">
+  <decoded_as>json</decoded_as>
+  <field name="source">^honeypot_beacon$</field>
+  <description>Honeypot beacon pre-filter</description>
+  <options>no_log</options>
+</rule>
+
+  <rule id="100100" level="12">
+    <if_sid>86600</if_sid>
+    <field name="event_type">llm_analysis</field>
+    <field name="attack_stage">data_exfiltration</field>
+    <description>LLM detected data exfiltration</description>
+  </rule>
+
+  <rule id="100101" level="10">
+    <if_sid>86600</if_sid>
+    <field name="event_type">llm_analysis</field>
+    <field name="attack_stage">privilege_escalation</field>
+    <description>LLM detected privilege escalation</description>
+  </rule>
+
+  <rule id="100102" level="7">
+    <if_sid>86600</if_sid>
+    <field name="event_type">llm_analysis</field>
+    <field name="attack_stage">exploitation</field>
+    <description>LLM detected exploitation</description>
+  </rule>
+
+  <rule id="100103" level="5">
+    <if_sid>86600</if_sid>
+    <field name="event_type">llm_analysis</field>
+    <field name="attack_stage">reconnaissance</field>
+    <description>LLM detected reconnaissance</description>
+  </rule>
+
+  <rule id="100200" level="12">
+    <if_sid>86600</if_sid>
+    <field name="event_type">session_summary</field>
+    <field name="risk_level">high|critical</field>
+    <description>HIGH RISK SESSION - Intent: $(final_intent)</description>
+  </rule>
+
+  <rule id="100201" level="8">
+    <if_sid>86600</if_sid>
+    <field name="event_type">session_summary</field>
+    <field name="risk_level">medium</field>
+    <description>MEDIUM RISK SESSION - Intent: $(final_intent)</description>
+  </rule>
+
+ 
+
+<rule id="100400" level="12">
+  <decoded_as>json</decoded_as>
+  <field name="event_type">^beacon_triggered$</field>
+  <field name="risk_level">^critical$</field>
+  <description>Honeypot: high-value beacon triggered — token: $(token)</description>
+</rule>
+
+
+
+<rule id="100402" level="15">
+  <if_sid>86600</if_sid>
+  <field name="event_type">^sql_injection$</field>
+  <description>Honeypot: SQL INJECTION ATTEMPT — endpoint: $(route_accessed)</description>
+</rule>
+
+<rule id="100600" level="15">
+  <if_sid>86600</if_sid>
+  <field name="event_type">attack_correlation</field>
+  <description>ATTACK CORRELATION - IP: $(attacker_ip) accessed SSH canaries then web beacons</description>
+
+</rule>
+<!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  NEW RULES TO ADD (paste these BEFORE the closing </group>) -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- AUTHENTICATION ANOMALIES -->
+  
+  <!-- Brute force: 5+ failed auth in 60 seconds from same IP -->
+<rule id="100110" level="10" frequency="5" timeframe="60">
+    <if_matched_sid>100001</if_matched_sid>
+    <same_source_ip />
+    <description>Honeypot: Brute-force detected — 5+ failed logins from same IP in 60s</description>
+    <group>honeypot_auth,brute_force,</group>
+  </rule>
+  <!-- COMMAND-LEVEL DETECTION (these fire on individual commands) -->
+
+  <!-- Any command executed in honeypot -->
+  <rule id="100500" level="3">
+    <if_sid>86600</if_sid>
+    <field name="event_type">^command$</field>
+    <description>Honeypot: Command executed by $(client_ip): $(command)</description>
+    <group>honeypot_cmd,</group>
+  </rule>
+
+  <!-- Reconnaissance commands -->
+  <rule id="100501" level="5">
+    <if_sid>100500</if_sid>
+    <field name="command">whoami|^id$|uname|hostname|ifconfig|ip a</field>
+    <description>Honeypot: Reconnaissance — $(client_ip) ran $(command)</description>
+    <group>honeypot_cmd,reconnaissance,</group>
+  </rule>
+
+  <!-- Privilege escalation commands -->
+  <rule id="100502" level="12">
+    <if_sid>100500</if_sid>
+    <field name="command">sudo|shadow|passwd</field>
+    <description>Honeypot: Privilege escalation attempt — $(client_ip) ran $(command)</description>
+    <group>honeypot_cmd,privilege_escalation,</group>
+  </rule>
+
+  <!-- Data exfiltration commands -->
+  <rule id="100503" level="12">
+    <if_sid>100500</if_sid>
+    <field name="command">\.sql|\.csv|dump|backup|config\.env|credentials|passwords</field>
+    <description>Honeypot: Data exfiltration indicator — $(client_ip) ran $(command)</description>
+    <group>honeypot_cmd,data_exfiltration,</group>
+  </rule>
+
+  <!-- Lateral movement indicators -->
+  <rule id="100504" level="10">
+    <if_sid>100500</if_sid>
+    <field name="command">ssh |nmap|netstat|ss -|curl |wget </field>
+    <description>Honeypot: Lateral movement indicator — $(client_ip) ran $(command)</description>
+    <group>honeypot_cmd,lateral_movement,</group>
+  </rule>
+
+  <!-- Environment variable access (credential harvesting) -->
+  <rule id="100505" level="8">
+    <if_sid>100500</if_sid>
+    <field name="command">^env$|printenv|\.env</field>
+    <description>Honeypot: Environment inspection — $(client_ip) may be harvesting credentials</description>
+    <group>honeypot_cmd,credential_harvesting,</group>
+  </rule>
+
+  <!-- ANOMALY: high command volume — 10+ commands in 2 minutes -->
+  <rule id="100506" level="8" frequency="10" timeframe="120">
+    <if_matched_sid>100500</if_matched_sid>
+    <same_field>client_ip</same_field>
+    <description>Honeypot: High activity anomaly — $(client_ip) ran 10+ commands in 2 minutes (possible automated tool)</description>
+    <group>honeypot_cmd,anomaly,</group>
+  </rule>
+
+  <!-- CANARY FILE EVENTS -->
+
+  <rule id="100700" level="13">
+    <if_sid>86600</if_sid>
+    <field name="event_type">^canary_triggered$</field>
+    <description>Honeypot: CANARY FILE accessed — $(canary_file) by $(client_ip)</description>
+    <group>honeypot_canary,critical,</group>
+  </rule>
+
+  <!-- Repeated canary access = persistence -->
+  <rule id="100701" level="14">
+    <if_sid>100700</if_sid>
+    <field name="access_count">^[2-9]|^\d{2,}</field>
+    <description>Honeypot: REPEATED canary access — $(canary_file) read multiple times by $(client_ip)</description>
+    <group>honeypot_canary,data_exfiltration,critical,</group>
+  </rule>
+
+  <!-- SESSION LIFECYCLE -->
+
+  <rule id="100800" level="5">
+    <if_sid>86600</if_sid>
+    <field name="event_type">^session_start$</field>
+    <description>Honeypot: Session started from $(client_ip) (profile: $(active_profile))</description>
+    <group>honeypot_session,</group>
+  </rule>
+
+  <rule id="100801" level="5">
+    <if_sid>86600</if_sid>
+    <field name="event_type">^session_end$</field>
+    <description>Honeypot: Session ended — $(client_ip) ran $(commands_executed) commands in $(duration_seconds)s</description>
+    <group>honeypot_session,</group>
+  </rule>
+</group>
+<group name="honeypot,trust,">
+
+  <rule id="100900" level="3">
+    <if_sid>86600</if_sid>
+    <field name="event_type">trust_change</field>
+    <description>Honeypot trust update: $(client_ip) trust=$(trust_after) band=$(trust_band)</description>
+  </rule>
+
+  <rule id="100901" level="7">
+    <if_sid>100900</if_sid>
+    <field name="trust_band">assign_training</field>
+    <description>Honeypot trust: $(client_ip) requires training (trust=$(trust_after))</description>
+    <group>insider_threat,training,</group>
+  </rule>
+
+  <rule id="100902" level="10">
+    <if_sid>100900</if_sid>
+    <field name="trust_band">warn_supervisor</field>
+    <description>Honeypot trust: $(client_ip) SUPERVISOR ALERT (trust=$(trust_after))</description>
+    <group>insider_threat,supervisor_alert,</group>
+  </rule>
+
+  <rule id="100903" level="12">
+    <if_sid>100900</if_sid>
+    <field name="trust_band">revoke</field>
+    <description>Honeypot trust: $(client_ip) ACCESS REVOCATION (trust=$(trust_after))</description>
+    <group>insider_threat,revocation,critical,</group>
+  </rule>
+  <rule id="100403" level="13">
+  <if_sid>100050</if_sid> 
+  <field name="event_type">^beacon_triggered$</field>
+  <field name="token">^admin-panel$</field>
+  <description>Honeypot: HIDDEN ADMIN PANEL accessed — no link exists on portal, direct URL navigation detected</description>
+  <group>honeypot_canary,insider_threat,lateral_movement,</group>
+
+</rule>
+<rule id="100404" level="15">
+  <if_sid>100050</if_sid>
+  <field name="event_type">^web_terminal_accessed$</field>
+  <description>Honeypot: WEB TERMINAL accessed — strong malicious insider indicator</description>
+  <group>honeypot_canary,insider_threat,</group>
+</rule>
+
+<rule id="100405" level="15">
+  <decoded_as>json</decoded_as>
+  <field name="event_type">^web_terminal_command$</field>
+  <description>Honeypot: WEB TERMINAL command executed: $(command)</description>
+  <group>honeypot_canary,insider_threat,</group>
+</rule>
+
+</group>

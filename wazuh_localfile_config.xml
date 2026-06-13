@@ -1,0 +1,21 @@
+<!--
+  Fragments to add inside <ossec_config> in
+  /var/ossec/etc/ossec.conf on the Wazuh manager,
+  so that Wazuh ingests the honeypot's JSON logs.
+-->
+<localfile>
+  <log_format>json</log_format>
+  <location>/path/to/Honeypot/llm_events.json</location>
+</localfile>
+<localfile>
+  <log_format>json</log_format>
+  <location>/path/to/Honeypot/beacon_events.json</location>
+</localfile>
+<localfile>
+  <log_format>json</log_format>
+  <location>/path/to/Honeypot/correlation_events.json</location>
+</localfile>
+<localfile>
+  <log_format>json</log_format>
+  <location>/path/to/Honeypot/insider_profiles.json</location>
+</localfile>

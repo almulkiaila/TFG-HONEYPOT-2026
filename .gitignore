@@ -1,0 +1,55 @@
+.env
+*.db
+*.db-shm
+*.db-wal
+*.db-journal
+*.log
+logs/
+llm_events.json
+beacon_events.json
+correlation_events.json
+insider_profiles.json
+audits.log
+cmd_audits.log
+eval_results.csv
+eval_metrics.json
+eval_confusion_matrix.csv
+baseline_eval_results.json
+lateral_movement_results.log
+__pycache__/
+*.pyc
+venv/
+.DS_Store
+
+# Zips y carpetas de versiones antiguas
+*.zip
+HONEYPOT_SIN_WAZUH/
+legacy/
+
+# Archivos de metadatos de Windows (al descargar/extraer)
+*:Zone.Identifier
+*Zone.Identifier*
+
+# Wazuh install files (no son parte del código del TFG)
+wazuh-install-files.tar
+wazuh-install.sh
+wazuh.txt
+
+# Resultados antiguos / duplicados
+baseline_results.json
+session_summaries.json
+llm_analysis_results.json
+log_analyzer.py
+llm_analyzer.py
+
+# Archivos sensibles adicionales
+passwords.txt
+server.key.pub
+
+# Logs rotados
+*.log.1
+*.log.2
+*.log.3
+
+# cats.txt (¿qué es esto? revisa si lo necesitas)
+cats.txt
