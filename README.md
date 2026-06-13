@@ -5,7 +5,7 @@ portal, deterministic behavioral scoring, a persistent trust-score model, and
 LLM-based session analysis to detect and respond to **insider threats** —
 actors who already hold legitimate access but misuse it.
 
-Developed as part of a Bachelor's Thesis (TFG) in Computer Engineering:
+Developed as part of a Bachelor's Thesis (TFG) in Computer Sciene & Engineering by Aila Almulki:
 *"Sistema de recomendación para honeypots con soporte en LLM"
 (Recommendation system for honeypots with LLM support)*.
 
