@@ -53,3 +53,7 @@ server.key.pub
 
 # cats.txt (¿qué es esto? revisa si lo necesitas)
 cats.txt
+
+inject_demo.py
+baseline_classifier.py
+consistency_validation.sh
