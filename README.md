@@ -9,7 +9,6 @@ Developed as part of a Bachelor's Thesis (TFG) in Computer Sciene & Engineering 
 *"Sistema de recomendación para honeypots con soporte en LLM"
 (Recommendation system for honeypots with LLM support)*.
 
----
 
 
 ## Architecture Overview
@@ -314,8 +313,6 @@ python evaluate.py
 Uses an isolated database (`honeypot_eval.db`), wiped and reinitialised at the
 start of each run.
 
-
-
 Outputs:
 
 - `eval_results.csv` — per-session predictions, reasoning, latency, retries
@@ -445,5 +442,5 @@ Access the Wazuh dashboard at `https://localhost`. A custom dashboard
   surfaced through the SIEM/database, never enforced automatically — there is
   no real resource to revoke in a honeypot.
 
-
+---
 
