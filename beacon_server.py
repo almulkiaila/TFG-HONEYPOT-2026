@@ -726,4 +726,4 @@ def backup():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("BEACON_PORT", 8888)), debug=False,, threaded=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("BEACON_PORT", 8888)), debug=False, threaded=True)
