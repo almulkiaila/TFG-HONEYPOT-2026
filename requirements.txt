@@ -1,0 +1,7 @@
+paramiko
+requests
+python-dotenv
+flask
+openai
+httpx
+urllib3
