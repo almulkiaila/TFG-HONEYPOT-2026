@@ -66,6 +66,7 @@ CANARY_FILES = {
     "users_dump.sql",
     "salaries_2025.csv",
     "vpn_config.ovpn",
+    "notes.txt"
 }
 
 # ── Weak credentials (honeypot always accepts these) ─────────

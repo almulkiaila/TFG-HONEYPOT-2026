@@ -75,28 +75,31 @@ echo -e "${GREEN}[✔] All source files present${NC}"
 
 # Python dependencies
 DEPS_OK=1
-for pkg in paramiko requests dotenv flask; do
+for pkg in paramiko requests dotenv flask openai httpx urllib3; do
     if ! $PYTHON -c "import $pkg" 2>/dev/null; then
         echo -e "${RED}[✗] Missing Python package: $pkg${NC}"
         DEPS_OK=0
     fi
 done
 if [[ $DEPS_OK -eq 0 ]]; then
-    echo "    pip install paramiko requests python-dotenv flask"
+    echo "    pip install paramiko requests python-dotenv flask openai httpx urllib3"
     exit 1
 fi
 echo -e "${GREEN}[✔] Python dependencies OK${NC}"
 
-# Ollama
-OLLAMA_URL="${OLLAMA_URL:-http://localhost:11434}"
-if curl -s --max-time 3 "$OLLAMA_URL/api/tags" >/dev/null 2>&1; then
-    echo -e "${GREEN}[✔] Ollama reachable at $OLLAMA_URL${NC}"
-else
-    echo -e "${YELLOW}[!] Ollama not reachable at $OLLAMA_URL${NC}"
-    echo "    LLM analysis will use fallback responses."
-    echo "    Start it with: ollama serve"
+# University LLM endpoint (LiteLLM proxy → Ollama)
+if [[ -f .env ]]; then
+    set -a
+    source .env
+    set +a
 fi
-
+LLM_URL="${UNI_LLM_URL:-https://192.168.43.171:4000/v1}"
+if curl -sk --max-time 5 -H "Authorization: Bearer $UNI_LLM_API_KEY" "$LLM_URL/models" >/dev/null 2>&1; then
+    echo -e "${GREEN}[✔] LLM endpoint reachable at $LLM_URL${NC}"
+else
+    echo -e "${YELLOW}[!] LLM endpoint not reachable at $LLM_URL${NC}"
+    echo "    LLM analysis will use fallback responses (attack_stage/risk_level = \"unknown\")."
+fi
 echo ""
 
 # ── 2. Initialize database ───────────────────────────────────
