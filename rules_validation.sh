@@ -55,4 +55,4 @@ sudo grep -o "Rule: [0-9]*" /var/ossec/logs/alerts/alerts.log | sort | uniq -c |
 echo "--- ultimas alertas honeypot ---"
 sudo grep "100[0-9][0-9][0-9]" /var/ossec/logs/alerts/alerts.log | tail -30
 echo "--- llm_events ---"
-tail -50 ~/Honeypot/llm_events.json
+tail -50 llm_events.json

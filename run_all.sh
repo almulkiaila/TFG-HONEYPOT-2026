@@ -93,7 +93,7 @@ if [[ -f .env ]]; then
     source .env
     set +a
 fi
-LLM_URL="${UNI_LLM_URL:-https://192.168.43.171:4000/v1}"
+LLM_URL="${UNI_LLM_URL:-https://localhost:4000/v1}"
 if curl -sk --max-time 5 -H "Authorization: Bearer $UNI_LLM_API_KEY" "$LLM_URL/models" >/dev/null 2>&1; then
     echo -e "${GREEN}[✔] LLM endpoint reachable at $LLM_URL${NC}"
 else

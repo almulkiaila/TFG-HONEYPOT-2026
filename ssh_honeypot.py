@@ -106,7 +106,7 @@ def save_llm_event(event):
 
 
 # ── LLM: University endpoint (OpenAI-compatible via LiteLLM) ──
-LLM_URL = os.environ.get("UNI_LLM_URL", "https://192.168.43.171:4000/v1")
+LLM_URL = os.environ.get("UNI_LLM_URL", "https://localhost:4000/v1")
 LLM_API_KEY = os.environ.get("UNI_LLM_API_KEY", "")
 LLM_MODEL = os.environ.get("UNI_LLM_MODEL", "gpt-oss:20b")
 
