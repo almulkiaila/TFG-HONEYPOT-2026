@@ -57,3 +57,4 @@ cats.txt
 inject_demo.py
 baseline_classifier.py
 consistency_validation.sh
+server.key
