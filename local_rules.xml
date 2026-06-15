@@ -87,11 +87,7 @@
   <description>ATTACK CORRELATION - IP: $(attacker_ip) accessed SSH canaries then web beacons</description>
 
 </rule>
-<!-- ═══════════════════════════════════════════════════════════ -->
-  <!--  NEW RULES TO ADD (paste these BEFORE the closing </group>) -->
-  <!-- ═══════════════════════════════════════════════════════════ -->
 
-  <!-- AUTHENTICATION ANOMALIES -->
   
   <!-- Brute force: 5+ failed auth in 60 seconds from same IP -->
 <rule id="100110" level="10" frequency="5" timeframe="60">
