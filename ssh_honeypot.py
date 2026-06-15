@@ -31,10 +31,10 @@ CORRELATION_LOG = os.path.join(BASE_DIR, "correlation_events.json")
 
 # Auto-detect machine IP for canary file URLs
 def get_local_ip():
-    """Get the machine's LAN IP (not 127.0.0.1)."""
+    
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))  # doesn't actually send anything
+        s.connect(("8.8.8.8", 80))  
         ip = s.getsockname()[0]
         s.close()
         return ip
@@ -53,7 +53,7 @@ with open(os.path.join(BASE_DIR, "system.json")) as f:
 
 print(f"[*] Beacon URL for canary files: {BEACON_URL}")
 
-# ── Constants ─────────────────────────────────────────────────
+
 logging_format = logging.Formatter("%(message)s")
 SSH_BANNER = "SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.6"
 host_key = paramiko.RSAKey(filename=os.path.join(BASE_DIR, "server.key"))
@@ -69,7 +69,7 @@ CANARY_FILES = {
     "notes.txt"
 }
 
-# ── Weak credentials (honeypot always accepts these) ─────────
+
 WEAK_CREDENTIALS = [
     ("admin", "admin"),
     ("root", "root"),
@@ -78,7 +78,6 @@ WEAK_CREDENTIALS = [
     ("test", "test123"),
 ]
 
-# ── Loggers ──────────────────────────────────────────────────
 funnel_logger = logging.getLogger("FunnelLogger")
 funnel_logger.setLevel(logging.INFO)
 funnel_handler = logging.FileHandler(os.path.join(BASE_DIR, "audits.log"))
@@ -91,7 +90,7 @@ creds_handler = logging.FileHandler(os.path.join(BASE_DIR, "cmd_audits.log"))
 creds_handler.setFormatter(logging_format)
 creds_logger.addHandler(creds_handler)
 
-# Thread lock for file writes
+
 _file_lock = threading.Lock()
 
 
@@ -105,12 +104,11 @@ def save_llm_event(event):
             f.write(json.dumps(event) + "\n")
 
 
-# ── LLM: University endpoint (OpenAI-compatible via LiteLLM) ──
 LLM_URL = os.environ.get("UNI_LLM_URL", "https://localhost:4000/v1")
 LLM_API_KEY = os.environ.get("UNI_LLM_API_KEY", "")
 LLM_MODEL = os.environ.get("UNI_LLM_MODEL", "gpt-oss:20b")
 
-# Custom HTTP client: skip TLS verification (uni server uses self-signed cert)
+
 _http_client = httpx.Client(verify=False, timeout=300.0)
 _llm_client = OpenAI(
     base_url=LLM_URL,
@@ -120,7 +118,7 @@ _llm_client = OpenAI(
 
 
 def call_llm(prompt):
-    """Call university LLM endpoint. Falls back gracefully on error."""
+    
     try:
         response = _llm_client.chat.completions.create(
             model=LLM_MODEL,
@@ -231,14 +229,13 @@ def run_session_summary(session, commands, canaries_touched=None, duration_secon
 
     # Step 1: Run behavioral profiling FIRST
     profile = profile_insider(session, commands, canaries_touched, duration_seconds)
-    # Step 2: Apply trust decay for this session
-    # This also handles lazy time-recovery before applying the new decay.
+    
     trust_before, trust_after = apply_incident_decay(
         session["ip"], session["session_id"], profile["composite_score"]
     )
     trust_band = get_trust_band(trust_after)
     print(f"[TRUST] {session['ip']}: {trust_before:.2f} → {trust_after:.2f} (band: {trust_band})")
-    # ── Artefactos concretos de ESTA sesión (anti-plantilla) ──
+   
     accessed_files = [c["file"] for c in canaries_touched]
     cmd_lower = commands_text.lower()
     session_artifacts = (
@@ -249,7 +246,7 @@ def run_session_summary(session, commands, canaries_touched=None, duration_secon
         f"{'YES' if any(k in cmd_lower for k in ('mysqldump', 'pg_dump', 'dump')) else 'NO'}\n"
         f"Touched /etc/shadow: {'YES' if 'shadow' in cmd_lower else 'NO'}"
     )
-    # Canary context
+   
     canary_context = ""
     if canaries_touched:
         canary_context = "\n\nSensitive files accessed (canary/decoy files):\n"
@@ -258,7 +255,7 @@ def run_session_summary(session, commands, canaries_touched=None, duration_secon
     else:
         canary_context = "\n\nNo sensitive decoy files were accessed."
 
-    # Beacon context
+   
     beacon_context = ""
     try:
         if os.path.exists(BEACON_EVENTS_FILE):
@@ -308,7 +305,7 @@ def run_session_summary(session, commands, canaries_touched=None, duration_secon
         print(f"[session_summary] correlation read error: {e}")
         correlation_context = "\n\nNo correlation data available."
 
-    # Insider profile context for LLM (scores only — LLM decides everything)
+    
     profile_context = f"""
 
 INSIDER BEHAVIORAL SCORES (computed automatically, 0.0 to 1.0):

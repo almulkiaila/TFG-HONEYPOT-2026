@@ -1,15 +1,3 @@
-"""
-correlator.py — Cross-layer attack correlation engine
-Detects when the same IP interacts with both SSH canaries and web beacons,
-indicating an attacker who read sensitive files via SSH and then followed
-URLs found inside those files.
-
-Improvements:
-  - Time-window correlation (configurable)
-  - Better deduplication
-  - Severity scoring based on combination of events
-  - Outputs to both JSON log and SQLite for Wazuh ingestion
-"""
 
 import json
 import time
@@ -24,14 +12,14 @@ BEACON_EVENTS = os.path.join(BASE_DIR, "beacon_events.json")
 CORRELATION_LOG = os.path.join(BASE_DIR, "correlation_events.json")
 DB_FILE = os.path.join(BASE_DIR, "honeypot.db")
 
-# How far apart (in minutes) canary + beacon events can be and still correlate
+
 CORRELATION_WINDOW_MINUTES = 30
 
 already_correlated = set()
 
 
 def save_correlation(event):
-    """Save to JSON log (for Wazuh file monitoring) and SQLite."""
+    
     with open(CORRELATION_LOG, "a") as f:
         f.write(json.dumps(event) + "\n")
 
@@ -91,21 +79,21 @@ def correlate():
     canary_by_ip = defaultdict(list)
     beacon_by_ip = defaultdict(list)
 
-    # Load canary events from llm_events.json
+    
     for event in load_events(LLM_EVENTS):
         if event.get("event_type") == "canary_triggered":
             ip = event.get("client_ip")
             if ip:
                 canary_by_ip[ip].append(event)
 
-    # Load beacon events
+    
     for event in load_events(BEACON_EVENTS):
         if event.get("event_type") in ("beacon_triggered", "sql_injection", "web_terminal_accessed", "web_terminal_command"):
             ip = event.get("attacker_ip")
             if ip:
                 beacon_by_ip[ip].append(event)
 
-    # Correlate IPs found in both sources
+    
     for ip in canary_by_ip:
         if ip not in beacon_by_ip:
             continue
@@ -113,7 +101,7 @@ def correlate():
         canary_events = canary_by_ip[ip]
         beacon_events = beacon_by_ip[ip]
 
-        # Time-window check: at least one canary and one beacon within window
+       
         correlated_canaries = set()
         correlated_beacons = set()
 
@@ -176,7 +164,7 @@ def correlate():
 
 
 if __name__ == "__main__":
-    print("🔍 Correlator running (checking every 10s)...")
+    print(" Correlator running (checking every 10s)...")
     try:
         while True:
             correlate()

@@ -1,24 +1,4 @@
-"""
-insider_profiler.py — Insider Threat Profiling Engine
 
-Behavioral profiling to distinguish between:
-  - MALICIOUS insider: deliberate, methodical, knows what they're doing
-  - NEGLIGENT insider: careless, untrained, stumbles into sensitive areas
-
-Based on behavioral indicators from:
-  - CERT/CMU Common Sense Guide to Mitigating Insider Threats (5th ed.)
-  - Ponemon Institute: Cost of Insider Threats Global Report
-  - CISA insider threat behavioral model
-  - Syteca/Proofpoint behavioral indicator frameworks
-
-Scoring dimensions:
-  1. Command sophistication (do they know Linux well?)
-  2. Navigation efficiency (do they go straight to targets?)
-  3. Canary interaction pattern (accidental vs deliberate access)
-  4. Time behavior (speed, hesitation patterns)
-  5. Lateral movement (SSH → Web correlation)
-  6. Historical behavior (repeat offender?)
-"""
 
 import json
 import os
@@ -30,9 +10,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_FILE = os.path.join(BASE_DIR, "honeypot.db")
 PROFILE_LOG = os.path.join(BASE_DIR, "insider_profiles.json")
 
-# ── Behavioral indicator definitions ─────────────────────────
 
-# Commands that indicate technical knowledge (malicious indicator)
 ADVANCED_COMMANDS = {
     "sudo", "cat /etc/shadow", "sudo -l", "sudo su", "sudo bash",
     "netstat", "ss -tlnp", "nmap", "ps aux", "env", "printenv",
@@ -41,13 +19,13 @@ ADVANCED_COMMANDS = {
     "base64", "tar", "zip", "mysqldump", "pg_dump",
 }
 
-# Commands that indicate basic/naive user (negligent indicator)
+
 BASIC_COMMANDS = {
     "whoami", "pwd", "ls", "cd", "help", "exit", "clear",
     "uname", "hostname", "date", "uptime",
 }
 
-# Canary files ordered by sensitivity (higher = more targeted)
+
 CANARY_SENSITIVITY = {
     "config.env": 3,
     "passwords.txt": 5,
@@ -165,10 +143,6 @@ TRAINING_COURSES = {
 }
 
 
-# ═══════════════════════════════════════════════════════════════
-# TRUST SCORE PARAMETERS (calibratable hyperparameters)
-# ═══════════════════════════════════════════════════════════════
-
 
 INITIAL_TRUST_SCORE = 1.0
 
@@ -199,14 +173,8 @@ TRUST_COURSE_COMPLETION_BONUS = 0.10
 # Minimum number of matching tags to assign a course
 MIN_TAG_MATCH_THRESHOLD = 1
 
-# If insider repeats the same pattern after training, repeat the course
-REPEAT_COURSE_ON_PERSISTENT_PATTERN = True
 
 
-# ═══════════════════════════════════════════════════════════════
-# BEHAVIORAL TAGGING THRESHOLDS
-# Used by the tagging function (Step 3) to convert scores into tags
-# ═══════════════════════════════════════════════════════════════
 
 SOPHISTICATION_DELIBERATE_THRESHOLD = 0.6
 CANARY_INTENT_EXFILTRATION_THRESHOLD = 0.7
@@ -220,12 +188,7 @@ EFFICIENCY_DIRECT_TARGETING_THRESHOLD = 0.5
 def generate_behavior_tags(commands, canaries_touched,
                            sophistication, efficiency, canary_intent,
                            lateral, web_terminal_used, is_repeat):
-    """
-    Convert the deterministic behavioural scores into policy-level tags from
-    BEHAVIOR_TAXONOMY. Pure function (no DB) so every tag is reproducible from
-    the session evidence (NFR-07). The historical 'escalating_severity' tag is
-    added in profile_insider(), where the previous composite score is available.
-    """
+   
     tags = []
     num_canaries = len(canaries_touched)
     cred_canaries = [c for c in canaries_touched if c["file"] in CREDENTIAL_CANARIES]
@@ -277,11 +240,7 @@ def generate_behavior_tags(commands, canaries_touched,
 
 
 def match_courses_from_tags(tags):
-    """
-    Map detected tags to the highest remedial course whose
-    'addresses_behaviors' list they match, honouring MIN_TAG_MATCH_THRESHOLD.
-    Returns 0 if no course matches (e.g. only historical tags).
-    """
+    
     if not tags:
         return 0
     tagset = set(tags)
@@ -294,7 +253,7 @@ def match_courses_from_tags(tags):
 
 
 def save_behavior_observations(session_id, ip, tags, composite_score):
-    """Persist one row per detected tag into the behavior_observations table."""
+   
     if not tags:
         return
     try:
@@ -317,7 +276,7 @@ def get_conn():
 
 
 def init_profiler_db():
-    """Create insider profiler tables with trust system + timeline support."""
+   
     with get_conn() as conn:
         # ── Profiles table (one row per session) ────────────────
         conn.execute("""
@@ -342,7 +301,7 @@ def init_profiler_db():
         """)
 
         # ── Training state (current state, one row per IP) ──────
-        # Now includes trust system columns from the start
+        
         conn.execute("""
         CREATE TABLE IF NOT EXISTS insider_training (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -447,7 +406,7 @@ def get_ip_history(ip):
 
 
 def get_training_record(ip):
-    """Get or create training record for this IP."""
+    
     with get_conn() as conn:
         cursor = conn.execute(
             "SELECT * FROM insider_training WHERE ip = ?", (ip,)
@@ -485,7 +444,7 @@ def get_training_record(ip):
 
 
 def increment_training(ip):
-    """Advance the insider to the next training course."""
+    
     with get_conn() as conn:
         record = get_training_record(ip)
         current_level = record["training_level"]
@@ -506,7 +465,7 @@ def increment_training(ip):
 
 
 def flag_for_removal(ip):
-    """Mark insider for removal after exhausting all training."""
+    
     with get_conn() as conn:
         now = datetime.now(timezone.utc).isoformat()
         conn.execute(
@@ -550,11 +509,7 @@ def score_sophistication(commands):
 
 
 def score_efficiency(commands, canaries_touched):
-    """
-    How directly does the user navigate to sensitive files?
-    High score = malicious (goes straight to targets)
-    Low score = negligent (wanders around, many ls/cd before finding anything)
-    """
+   
     if not commands:
         return 0.0
 
@@ -616,12 +571,7 @@ def score_canary_intent(canaries_touched, commands):
 
 
 def score_time_behavior(commands, duration_seconds):
-    """
-    How does time spent relate to behavior?
-    Fast + targeted = malicious (knows what they want)
-    Slow + wandering = negligent (exploring, confused)
-    Very fast with many commands = automated tool (malicious)
-    """
+   
     if not commands or duration_seconds <= 0:
         return 0.5
 
@@ -644,10 +594,7 @@ def score_time_behavior(commands, duration_seconds):
 
 
 def check_lateral_movement(ip):
-    """
-    Did this IP appear in both SSH and web beacons?
-    Lateral movement is a strong malicious indicator.
-    """
+    
     try:
         beacon_file = os.path.join(BASE_DIR, "beacon_events.json")
         if not os.path.exists(beacon_file):
@@ -668,14 +615,7 @@ def check_lateral_movement(ip):
 # ── Main profiling function ──────────────────────────────────
 
 def profile_insider(session, commands, canaries_touched, duration_seconds):
-    """
-    Compute behavioral scores for an insider session.
-    
-    This function ONLY computes scores — it does NOT decide the profile type,
-    training action, or recommendation. That is the LLM's job.
-    
-    Returns a profile dict with all scores + context for the LLM.
-    """
+   
     ip = session["ip"]
     session_id = session["session_id"]
 
@@ -848,7 +788,7 @@ def profile_insider(session, commands, canaries_touched, duration_seconds):
 
 
 def update_profile_from_llm(session_id, ip, insider_type, recommended_action):
-    """Called after LLM responds — updates the DB with the LLM's decisions."""
+    
     try:
         with get_conn() as conn:
             conn.execute(
@@ -862,7 +802,7 @@ def update_profile_from_llm(session_id, ip, insider_type, recommended_action):
 
 
 def update_training_from_llm(ip, new_level):
-    """Called when LLM recommends advancing training level."""
+    
     try:
         with get_conn() as conn:
             now = datetime.now(timezone.utc).isoformat()
@@ -886,24 +826,9 @@ def update_training_from_llm(ip, new_level):
         print(f"[PROFILER] training update error: {e}")
 
 
-# ═══════════════════════════════════════════════════════════════
-# TRUST SCORE SYSTEM
-# ═══════════════════════════════════════════════════════════════
-# Trust is a persistent score per IP (0.0 to 1.0) that:
-#   - Starts at 1.0 (full trust) for new IPs
-#   - Decreases when an incident happens (decay proportional to composite)
-#   - Recovers slowly over time when the IP behaves (lazy recovery)
-#   - Gets a small bonus when a training course is assigned
-#   - When trust hits 0, the IP is auto-flagged for access revocation
-# ═══════════════════════════════════════════════════════════════
-
 
 def _log_trust_change(conn, ip, session_id, before, after, reason, composite=None):
-    """
-    Record a trust change in two places:
-      1. SQLite trust_score_history table (for the standalone DB queries)
-      2. llm_events.json (for Wazuh — already monitored by filebeat/ossec)
-    """
+    
     timestamp = datetime.now(timezone.utc).isoformat()
     delta = round(after - before, 3)
 
@@ -958,11 +883,7 @@ def _log_trust_change(conn, ip, session_id, before, after, reason, composite=Non
 
 
 def get_current_trust(ip, session_id=None):
-    """
-    Read trust for an IP and apply lazy time-based recovery first.
-    Creates the training row if the IP is new (with INITIAL_TRUST_SCORE).
-    Returns the up-to-date trust value (0.0 to 1.0).
-    """
+   
     with get_conn() as conn:
         row = conn.execute(
             "SELECT trust_score, last_incident_at FROM insider_training WHERE ip = ?",
@@ -1019,12 +940,7 @@ def get_current_trust(ip, session_id=None):
 
 
 def apply_incident_decay(ip, session_id, composite_score):
-    """
-    Apply trust decay at the end of a session.
-    Order: time recovery (via get_current_trust) → decay → save.
-    Auto-flags for removal if trust hits 0.
-    Returns (trust_before, trust_after).
-    """
+    
     trust_before = get_current_trust(ip, session_id)
     delta = composite_score * TRUST_DECAY_RATE
     trust_after = max(0.0, trust_before - delta)
@@ -1057,10 +973,7 @@ def apply_incident_decay(ip, session_id, composite_score):
 
 
 def apply_course_bonus(ip, session_id, course_level):
-    """
-    Add a fixed trust bonus when a training course is assigned/completed.
-    Returns (trust_before, trust_after).
-    """
+  
     trust_before = get_current_trust(ip, session_id)
     trust_after = min(TRUST_MAX, trust_before + TRUST_COURSE_COMPLETION_BONUS)
 

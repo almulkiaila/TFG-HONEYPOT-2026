@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BEACON_LOG = os.path.join(BASE_DIR, "beacon_events.json")
 
 
-# ── Beacon token mapping ─────────────────────────────────────
+#beacon token mapping
 BEACON_ROUTES = {
     "/":                   ("root-redirect",      "low"),
     "/login":              ("login-portal",       "low"),
@@ -48,7 +48,7 @@ BEACON_ROUTES = {
     "/metrics/db":         ("db-metrics",         "medium"),
     "/backup":             ("backup-file",        "high"),
 }
-# ── Fake employee data (decoy) ────────────────────────────────
+
 FAKE_EMPLOYEES = [
     {"id": 1, "name": "Carlos Mendoza",     "dept": "Engineering",  "email": "c.mendoza@corp-internal.net",   "ext": "2041", "role": "Senior Backend Developer"},
     {"id": 2, "name": "Laura Fernández",    "dept": "Engineering",  "email": "l.fernandez@corp-internal.net", "ext": "2042", "role": "DevOps Lead"},
@@ -68,7 +68,6 @@ FAKE_TICKETS = [
 ]
 
 
-# ── Helpers ───────────────────────────────────────────────────
 
 
 
@@ -99,7 +98,6 @@ def handle_beacon(route, extra=None):
     save_beacon(event)
     print(f"BEACON: {route} from {attacker_ip} (risk={risk})")
 
-# ── Shared HTML layout ────────────────────────────────────────
 
 LAYOUT_CSS = """
 <style>
@@ -184,11 +182,7 @@ LAYOUT_CSS = """
 </style>
 """
 
-# ── Navbar — /admin intentionally NOT linked anywhere ─────────
-# A legitimate employee has no reason to know /admin exists.
-# Anyone who navigates there typed the URL directly or got it
-# from a sensitive file (config.env, notes.txt, etc.) — both
-# are strong malicious insider indicators.
+
 def navbar(active=""):
     return f"""
     <div class="topbar">
@@ -208,14 +202,13 @@ def navbar(active=""):
 #   ROUTES
 # ═══════════════════════════════════════════════════════════════
 
-# ── Landing / root ────────────────────────────────────────────
+
 @app.route("/")
 def home():
     handle_beacon("/")
     return redirect("/login")
 
 
-# ── Login ─────────────────────────────────────────────────────
 @app.route("/login", methods=["GET", "POST"])
 def login():
     handle_beacon("/login")
@@ -240,7 +233,7 @@ def login():
             "alert": "SQL INJECTION DETECTED",
         }
         save_beacon(event)
-        print(f"💉 SQLI: /login from {attacker_ip}")
+        print(f" SQLI: /login from {attacker_ip}")
 
     error_msg = ""
     if request.method == "POST" and user:
@@ -277,7 +270,7 @@ def login():
     </body></html>""")
 
 
-# ── Dashboard ─────────────────────────────────────────────────
+
 @app.route("/dashboard")
 def dashboard():
     handle_beacon("/dashboard")
@@ -316,7 +309,7 @@ def dashboard():
     </body></html>""")
 
 
-# ── Contacts directory ────────────────────────────────────────
+
 @app.route("/contacts")
 def contacts():
     handle_beacon("/contacts")
@@ -411,7 +404,7 @@ def ticket_new():
     </body></html>""")
 
 
-# ── Docs ──────────────────────────────────────────────────────
+
 @app.route("/docs")
 def docs():
     handle_beacon("/docs")
@@ -479,18 +472,7 @@ def docs_vpn():
     </body></html>""")
 
 
-# ── Admin (HIDDEN — no link exists anywhere on the portal) ────
-#
-# DECEPTION DESIGN:
-#   No page in this portal links to /admin. The only way an insider
-#   reaches this URL is by:
-#     (a) reading config.env / notes.txt via SSH and following the
-#         INTERNAL_PORTAL or ADMIN_PANEL URL embedded there, OR
-#     (b) actively guessing/enumerating admin paths.
-#   Either case is a strong malicious indicator. The referer header
-#   confirms whether they came from an internal page (impossible,
-#   since no link exists) or typed/pasted the URL directly.
-#
+#admin(HIDDEN,no link exists anywhere on the portal)
 @app.route("/admin")
 def admin():
     attacker_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
@@ -519,7 +501,7 @@ def admin():
     
     print(f"HIDDEN ADMIN HIT by {attacker_ip} (referer: {referer or 'none'})")
 
-    # Render a convincing panel so they keep exploring (more signals)
+    
     return render_template_string(f"""<!DOCTYPE html><html><head><title>Admin — NEXUScorp</title>{LAYOUT_CSS}</head><body>
     {navbar('admin')}
     <div class="page">
@@ -581,9 +563,7 @@ def admin_settings():
     </div></body></html>""")
 
 
-# ── Web Terminal (HIGH-VALUE TRAP) ────────────────────────────
-# A normal employee would NEVER use a web terminal on the intranet.
-# Accessing this page is a very strong malicious insider indicator.
+#Web Terminal
 @app.route("/admin/terminal", methods=["GET", "POST"])
 def admin_terminal():
     attacker_ip = request.headers.get("X-Forwarded-For", request.remote_addr)
@@ -603,7 +583,7 @@ def admin_terminal():
         "alert": "WEB TERMINAL ACCESSED — strong malicious indicator",
     }
     save_beacon(event)
-    print(f"🔴 WEB TERMINAL accessed by {attacker_ip} — MALICIOUS INDICATOR")
+    print(f" WEB TERMINAL accessed by {attacker_ip} — MALICIOUS INDICATOR")
 
     if request.method == "POST":
         cmd = request.form.get("cmd", "")
@@ -621,7 +601,7 @@ def admin_terminal():
                 "alert": f"WEB TERMINAL COMMAND: {cmd}",
             }
             save_beacon(cmd_event)
-            print(f"🔴 WEB TERMINAL COMMAND from {attacker_ip}: {cmd}")
+            print(f" WEB TERMINAL COMMAND from {attacker_ip}: {cmd}")
 
     cmd = request.form.get("cmd", "") if request.method == "POST" else ""
     output = ""

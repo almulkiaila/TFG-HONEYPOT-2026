@@ -13,7 +13,7 @@ log() {
 log "LATERAL MOVEMENT TEST"
 echo "=============================================" | tee -a "$LOG_FILE"
 
-# STEP 1: web first
+
 log "STEP 1: Accessing internal portal"
 curl -s "$WEB_HOST/" > /dev/null
 curl -s "$WEB_HOST/login" > /dev/null
@@ -23,7 +23,6 @@ curl -s "$WEB_HOST/admin/terminal" > /dev/null
 log "  -> portal routes accessed"
 sleep 2
 
-# STEP 2: SSH via expect
 log "STEP 2: SSH session via expect"
 expect -c '
 spawn ssh -o StrictHostKeyChecking=no admin@localhost -p 2222
@@ -52,7 +51,7 @@ expect eof
 
 log "SSH session complete"
 
-# STEP 3: poll for session_summary instead of fixed sleep
+
 log "STEP 3: Waiting for LLM session summary (up to 180s)..."
 FOUND=""
 for i in $(seq 1 36); do

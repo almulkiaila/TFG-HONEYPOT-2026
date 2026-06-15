@@ -1,17 +1,11 @@
-"""
-evaluate_baseline.py — Standalone baseline evaluation of the
-deterministic scoring engine (SO4).
 
-Reuses the existing scoring functions from insider_profiler.py
-directly — no reimplementation, no LLM, no database required.
-"""
 
 import json
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ── Reuse existing scoring functions directly ────────────────
+
 from insider_profiler import (
     score_sophistication,
     score_efficiency,
@@ -24,13 +18,7 @@ CLASSIFICATION_THRESHOLD = 0.5
 
 def compute_composite(commands, canaries_touched,
                       duration_seconds, previous_sessions):
-    """
-    Replicates the composite score from Equation eq:composite-impl
-    but without lateral movement and web terminal dimensions,
-    since those require live beacon data not available in the
-    static evaluation dataset.
-    Maximum attainable score here is therefore 0.75, not 1.0.
-    """
+    
     soph   = score_sophistication(commands)
     eff    = score_efficiency(commands, canaries_touched)
     can    = score_canary_intent(canaries_touched, commands)

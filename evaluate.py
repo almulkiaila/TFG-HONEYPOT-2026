@@ -1,27 +1,4 @@
-"""
-evaluate.py — Honeypot LLM analysis evaluation.
 
-Loads labeled sessions from test_sessions.json, runs them through the LLM
-analysis pipeline and compares predictions against ground truth.
-
-Outputs:
-  - eval_results.csv: per-session predictions, reasoning and latency
-  - eval_metrics.json: aggregated metrics (accuracy, precision, recall, F1, FPR)
-  - eval_confusion_matrix.csv: malicious vs negligent confusion matrix
-
-Features:
-  - Uses an isolated DB (honeypot_eval.db) to avoid polluting production data
-  - Wipes the eval DB at start (each evaluation runs from a clean slate)
-  - Automatic retry when the LLM returns empty / all-unknown output
-  - Simulates prior sessions for repeat offenders declared in the dataset
-
-Usage:
-    python evaluate.py
-    python evaluate.py --runs 3        # repeat each session 3 times (consistency)
-    python evaluate.py --sessions 5    # only first 5 sessions (quick debug)
-    python evaluate.py --keep-db       # don't wipe the eval DB between runs
-    python evaluate.py --skip-stages   # skip attack-stage evaluation (faster)
-"""
 
 import argparse
 import csv
@@ -34,9 +11,7 @@ from datetime import datetime, timezone
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# ── ISOLATED DB: redirect BEFORE importing ssh_honeypot ──────────
-# This is critical: ssh_honeypot imports db and insider_profiler, which
-# build their DB path at import time. We must patch the paths first.
+
 EVAL_DB = os.path.join(BASE_DIR, "honeypot_eval.db")
 
 import db as honeypot_db
@@ -54,7 +29,7 @@ CONFUSION_CSV = os.path.join(BASE_DIR, "eval_confusion_matrix.csv")
 
 
 def reset_eval_db():
-    """Delete the eval DB and reinitialize fresh tables."""
+   
     if os.path.exists(EVAL_DB):
         os.remove(EVAL_DB)
         print(f"🗑️  Previous eval DB removed: {EVAL_DB}")
@@ -64,18 +39,14 @@ def reset_eval_db():
 
 
 def load_dataset():
-    """Load dataset and sort so sessions with prior history come last."""
+    
     with open(DATASET_FILE, "r") as f:
         data = json.load(f)
     return sorted(data, key=lambda d: d.get("previous_sessions", 0))
 
 
 def simulate_prior_sessions(test_case):
-    """
-    Insert fake prior sessions in the DB so get_ip_history() returns the
-    expected count. Simulates a repeat offender's history without having
-    to run N real sessions beforehand.
-    """
+   
     n = test_case.get("previous_sessions", 0)
     if n <= 0:
         return
@@ -85,7 +56,7 @@ def simulate_prior_sessions(test_case):
         for i in range(n):
             fake_sid = f"prior_{test_case['id']}_{i}"
             fake_ts = datetime.now(timezone.utc).isoformat()
-            # CORREGIDO: Eliminadas las columnas inexistentes attack_stage y risk_level
+            
             conn.execute(
                 "INSERT INTO commands (timestamp, ip, session_id, command, response) "
                 "VALUES (?, ?, ?, ?, ?)",
@@ -94,7 +65,7 @@ def simulate_prior_sessions(test_case):
 
 
 def evaluate_session(test_case, run_idx=0, max_retries=2):
-    """Run a session through run_session_summary and return prediction + timing."""
+    
     session = {
         "session_id": f"eval_{test_case['id']}_run{run_idx}_{uuid.uuid4().hex[:6]}",
         "ip": test_case["ip"],
@@ -121,8 +92,7 @@ def evaluate_session(test_case, run_idx=0, max_retries=2):
                 last_error = "run_session_summary returned None (missing `return event`?)"
                 continue
 
-            # If everything came back as unknown, the LLM either returned empty
-            # or unparseable JSON. Retry before giving up.
+            
             all_unknown = (
                 result.get("insider_type") == "unknown"
                 and result.get("risk_level") == "unknown"
@@ -130,7 +100,7 @@ def evaluate_session(test_case, run_idx=0, max_retries=2):
             )
             if all_unknown and attempt < max_retries:
                 last_error = "LLM returned all 'unknown'"
-                print(f"\n   ⚠️  Retry {attempt+1}/{max_retries}", end=" ", flush=True)
+                print(f"\n     Retry {attempt+1}/{max_retries}", end=" ", flush=True)
                 time.sleep(2)
                 continue
 
@@ -312,9 +282,9 @@ def main():
     if args.sessions:
         dataset = dataset[: args.sessions]
 
-    print(f"📋 Sessions to evaluate: {len(dataset)}")
-    print(f"🔁 Runs per session: {args.runs}")
-    print(f"📊 Total LLM calls: ~{len(dataset) * args.runs * (1 if args.skip_stages else 2)}\n")
+    print(f" Sessions to evaluate: {len(dataset)}")
+    print(f" Runs per session: {args.runs}")
+    print(f" Total LLM calls: ~{len(dataset) * args.runs * (1 if args.skip_stages else 2)}\n")
 
     all_results = []
 
@@ -324,7 +294,7 @@ def main():
               f"risk={test_case['ground_truth']['risk_level']}, "
               f"stage={test_case['ground_truth']['attack_stage']}")
         if test_case.get("previous_sessions", 0) > 0:
-            print(f"   📜 Simulating {test_case['previous_sessions']} prior sessions for this IP")
+            print(f"    Simulating {test_case['previous_sessions']} prior sessions for this IP")
 
         for run in range(args.runs):
             print(f"   Run {run+1}/{args.runs}...", end=" ", flush=True)
@@ -365,7 +335,7 @@ def main():
 
             all_results.append(row)
 
-    # ── Save detailed results CSV ────────────────────────────────
+   
     if all_results:
         fieldnames = list(all_results[0].keys())
         with open(RESULTS_CSV, "w", newline="", encoding="utf-8") as f:
@@ -374,7 +344,7 @@ def main():
             writer.writerows(all_results)
         print(f"\n💾 Results → {RESULTS_CSV}")
 
-    # ── Aggregate metrics ────────────────────────────────────────
+    
     metrics = compute_metrics(all_results)
     per_cat = compute_per_category_accuracy(all_results)
 

@@ -1,7 +1,4 @@
-"""
-db.py — SQLite persistence layer for the honeypot.
-Tables: commands, llm_analysis, canary_events, beacon_events, correlation_events
-"""
+
 
 import sqlite3
 import os
@@ -84,7 +81,7 @@ def init_db():
         )
         """)
 
-        # Indexes for faster queries in dashboard / Wazuh
+       
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_commands_session ON commands(session_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_commands_ip ON commands(ip)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_canary_ip ON canary_events(ip)")
