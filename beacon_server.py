@@ -237,7 +237,7 @@ def login():
 
     error_msg = ""
     if request.method == "POST" and user:
-        error_msg = '<p style="color:#c62828;font-size:13px;margin-bottom:12px;">⚠ Invalid credentials. This attempt has been logged.</p>'
+        error_msg = '<p style="color:#c62828;font-size:13px;margin-bottom:12px;">⚠ Invalid credentials. Please try again.</p>'
         if not is_sqli:
             return redirect("/dashboard")
 
